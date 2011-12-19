@@ -1,5 +1,5 @@
 var http = require("http");
-var socketIo = require('./node_modules/socket.io/lib/socket.io'); 
+var socketIo = require('socket.io'); 
 var url = require("url");
 
 function start(route, handle) {
