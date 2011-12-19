@@ -1,4 +1,8 @@
 {
   "name": "groceries-server",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "dependencies": {
+    "redis-url": "0.0.1",
+    "socket.io": "0.8.7"
+  }
 }
