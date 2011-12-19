@@ -14,6 +14,10 @@ function start(route, handle) {
     app.listen(process.env.PORT, '0.0.0.0');
     console.log("Server has started.");
     
+    app.get('/', function(request, response) {
+      response.send('Hello World!');
+    });
+    
     var io = socketIo.listen(app);
     
     io.configure(function() {
