@@ -15,6 +15,20 @@ function start(response) {
   });
 }
 
+function chat(response) {
+    fs.readFile(__dirname + '/chat.html',
+    function (err, data) {
+        if (err) {
+        response.writeHead(500);
+        return res.end('Error loading chat.html');
+    }
+
+    response.writeHead(200, {"Content-Type": "text/html"});
+    response.write(data);
+    response.end();
+  });   
+}
+
 function add(response) {
   console.log("Request handler 'add' was called.");
   response.writeHead(200, {"Content-Type": "text/plain"});
@@ -25,3 +39,4 @@ function add(response) {
 
 exports.start = start;
 exports.add = add;
+exports.chat = chat;

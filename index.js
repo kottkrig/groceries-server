@@ -6,5 +6,6 @@ var handle = {};
 handle["/"] = requestHandlers.start;
 handle["/start"] = requestHandlers.start;
 handle["/add"] = requestHandlers.add;
+handle["/chat"] = requestHandlers.chat;
 
 server.start(router.route, handle);

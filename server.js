@@ -13,11 +13,7 @@ function start(route, handle) {
     var app = http.createServer(onRequest);
     app.listen(process.env.PORT, '0.0.0.0');
     console.log("Server has started.");
-    
-    app.get('/', function(request, response) {
-      response.send('Hello World!');
-    });
-    
+
     var io = socketIo.listen(app);
     
     io.configure(function() {
@@ -34,7 +30,17 @@ function start(route, handle) {
         });
         socket.on('disconnect', function() {
             console.log('Client disconnected');
-        }); 
+        });
+        socket.on('set nickname', function(name) {
+            socket.set('nickname', name, function() {
+                socket.emit('ready');
+            });
+        });
+        socket.on('chat message', function(msg) {
+            socket.get('nickname', function(err, name) {
+                console.log('Chat message by ' + name + ': ' + msg);
+            });
+        });
     }
         
     io.sockets.on('connection', onConnection);
