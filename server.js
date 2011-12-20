@@ -11,7 +11,8 @@ function start(route, handle) {
     }
     
     var app = http.createServer(onRequest);
-    app.listen(process.env.PORT, '0.0.0.0');
+    var port = process.env.PORT || 8080;
+    app.listen(port);
     console.log("Server has started.");
 
     var io = socketIo.listen(app);
