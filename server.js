@@ -11,12 +11,13 @@ function start(route, handle) {
     }
     
     var app = http.createServer(onRequest);
-    var port = process.env.PORT || 8080;
+    var port = process.env.PORT;
     app.listen(port);
     console.log("Server has started.");
 
     var io = socketIo.listen(app);
     
+    // Socket config for Heroku
     io.configure(function() {
         io.set('transports', ['xhr-polling']);
         io.set('polling duration', 10);
@@ -32,20 +33,9 @@ function start(route, handle) {
         socket.on('disconnect', function() {
             console.log('Client disconnected');
         });
-        socket.on('set nickname', function(name) {
-            socket.set('nickname', name, function() {
-                socket.emit('ready');
-            });
-        });
-        socket.on('chat message', function(msg) {
-            socket.get('nickname', function(err, name) {
-                console.log('Chat message by ' + name + ': ' + msg);
-            });
-        });
     }
         
     io.sockets.on('connection', onConnection);
 }
-
 
 exports.start = start;

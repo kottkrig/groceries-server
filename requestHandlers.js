@@ -6,27 +6,13 @@ function start(response) {
   function (err, data) {
     if (err) {
       response.writeHead(500);
-      return res.end('Error loading index.html');
+      return response.end('Error loading index.html');
     }
 
     response.writeHead(200, {"Content-Type": "text/html"});
     response.write(data);
     response.end();
   });
-}
-
-function chat(response) {
-    fs.readFile(__dirname + '/chat.html',
-    function (err, data) {
-        if (err) {
-        response.writeHead(500);
-        return res.end('Error loading chat.html');
-    }
-
-    response.writeHead(200, {"Content-Type": "text/html"});
-    response.write(data);
-    response.end();
-  });   
 }
 
 function add(response) {
@@ -36,7 +22,5 @@ function add(response) {
   response.end();
 }
 
-
 exports.start = start;
 exports.add = add;
-exports.chat = chat;
