@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "redis-url": "0.0.1",
+    "redis-client": "0.3.5",
     "socket.io": "0.7.0"
   }
 }
