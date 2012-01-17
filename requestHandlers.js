@@ -9,33 +9,47 @@ var dbAuth = function() {
 db.addListener('connected', dbAuth);
 db.addListener('reconnected', dbAuth);
 
-//var redis = require('redis-url').connect(process.env.REDISTOGO_URL);
-
-function start(response, postData) {
-  fs.readFile(__dirname + '/index.html',
-  function (err, data) {
-    if (err) {
-      response.writeHead(500);
-      return response.end('Error loading index.html');
-    }
-
-    response.writeHead(200, {"Content-Type": "text/html"});
-    response.write(data);
-    response.end();
-  });
+function respond(response, statusCode, message) {
+    response.writeHead(statusCode, {"Content-Type": "text/plain"});
+    response.end(message);
 }
 
-function add(response, postData) {   
-    console.log("Request handler 'add' was called.");
-    db.set("message", postData);
-    db.get("message", function(err, value) {
-        response.writeHead(200, {"Content-Type": "text/plain"});
-          response.write("Hello Add!");
-          response.write("From database: " + value);
-          response.end();
+function respondWithAllMembersFromDB(response, listName) {
+    db.smembers(listName, function(err, value) {
+        if (!err) {
+            respond(response, 200, "List " + listName + " from database: " + value);
+        } else {
+            respond(response, 500, "Error fetching members from database");
+        }
     });
-  
+}
+
+function start(response, postData) {
+    fs.readFile(__dirname + '/index.html', function (err, data) {
+        if (!err) {
+            response.writeHead(200, {"Content-Type": "text/html"});
+            response.end(data);
+        } else {
+            respond(response, 500, 'Error loading index.html');
+        } 
+    });
+}
+
+function add(response, postData) {
+    db.sadd("shoppingList", postData);
+    respondWithAllMembersFromDB(response, "shoppingList");
+}
+
+function remove(response, postData) {
+    db.srem("shoppingList", postData);
+    respondWithAllMembersFromDB(response, "shoppingList");
+}
+
+function getList(response, postData) {
+    respondWithAllMembersFromDB(response, "shoppingList");   
 }
 
 exports.start = start;
 exports.add = add;
+exports.remove = remove;
+exports.getList = getList;
