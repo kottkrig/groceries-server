@@ -15,7 +15,9 @@ function start(route, handle) {
         });
         
         request.addListener('end', function() {
-            route(handle, pathname, response, postData);
+            var postKeyValue = postData.split('=');
+            var postValue = postKeyValue[1];
+            route(handle, pathname, response, postValue);
         });
     }
     

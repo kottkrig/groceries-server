@@ -45,6 +45,21 @@ function remove(response, postData) {
     respondWithAllMembersFromDB(response, "shoppingList");
 }
 
+function clearList(response, postData) {
+    db.smembers("shoppingList", function(err, members) {
+        if(!err) {
+            members = members + '';
+            var memberList = members.split(',');
+            for(var i = 0; i < memberList.length; i++) {
+                db.srem("shoppingList", memberList[i]);
+            }
+            respondWithAllMembersFromDB(response, "shoppingList");
+        } else {
+            respond(response, 500, 'Error when clearing list');
+        }
+    });
+}
+
 function getList(response, postData) {
     respondWithAllMembersFromDB(response, "shoppingList");   
 }
@@ -53,3 +68,4 @@ exports.start = start;
 exports.add = add;
 exports.remove = remove;
 exports.getList = getList;
+exports.clearList = clearList;

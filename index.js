@@ -8,5 +8,6 @@ handle["/start"] = requestHandlers.start;
 handle["/add"] = requestHandlers.add;
 handle["/remove"] = requestHandlers.remove;
 handle["/getList"] = requestHandlers.getList;
+handle["/clearList"] = requestHandlers.clearList;
 
 server.start(router.route, handle);
