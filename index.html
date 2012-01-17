@@ -17,19 +17,21 @@
 	</head>
 	<body>
         <form action="/add" method='post'>
-            <input type='text' name='message' />
+            <input type='text' name='item' />
+            <input type='text' name='listId' />
             <input type='submit' value='Add' />
         </form>
         <form action="/remove" method='post'>
-            <input type='text' name='message' />
+            <input type='text' name='item' />
+            <input type='text' name='listId' />
             <input type='submit' value='Remove' />
         </form>
         <form action="/getList" method='get'>
-            <input type='text' name='listName' />
+            <input type='text' name='listId' />
             <input type='submit' value='GetList' />
         </form>
-        <form action="/clearList" method='get'>
-            <input type='text' name='listName' />
+        <form action="/clearList" method='post'>
+            <input type='text' name='listId' />
             <input type='submit' value='ClearList' />
         </form>
 	</body>

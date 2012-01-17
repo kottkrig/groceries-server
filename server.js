@@ -5,6 +5,7 @@ var url = require("url");
 function start(route, handle) {
     function onRequest(request, response) {
         var postData = '';
+        var uri = url.parse(request.url, true);
         var pathname = url.parse(request.url).pathname;
         console.log("Request for " + pathname + " received.");
         
@@ -15,9 +16,11 @@ function start(route, handle) {
         });
         
         request.addListener('end', function() {
-            var postKeyValue = postData.split('=');
-            var postValue = postKeyValue[1];
-            return route(handle, pathname, response, postValue);
+            if(request.method == 'GET') {
+                route(handle, pathname, response, uri.query);
+            } else {
+                route(handle, pathname, response, postData);
+            }
         });
     }
     
