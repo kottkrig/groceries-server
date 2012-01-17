@@ -1,8 +1,9 @@
 <!doctype html>
 <html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
     <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <!--<script src="/socket.io/socket.io.js"></script>
     <script>
       var socket = io.connect();
       console.log('Client is running.');
@@ -12,7 +13,7 @@
         socket.emit('my other event', { my: 'data' });
         console.log('Client emitted my other event');
       });
-    </script>
+    </script>-->
 	</head>
 	<body>
         <form action="/add" method='post'>
@@ -24,9 +25,11 @@
             <input type='submit' value='Remove' />
         </form>
         <form action="/getList" method='get'>
+            <input type='text' name='listName' />
             <input type='submit' value='GetList' />
         </form>
         <form action="/clearList" method='get'>
+            <input type='text' name='listName' />
             <input type='submit' value='ClearList' />
         </form>
 	</body>
