@@ -3,12 +3,12 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
     <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <!--<script src="/socket.io/socket.io.js"></script>-->
     <script>
     
         $(document).ready(function() {
             getList();
-            initSocket();
+            //initSocket();
         });
         
         function initSocket() {
@@ -27,7 +27,15 @@
         }
         
         function addItem() {
-            $.post('/add', {listId:'list', item:$("#addInput").text()});
+            $.post('/add', {listId:'list', item:$('#addInput').val()});
+        }
+        
+        function removeItem() {
+            $.post('/remove', {listId:'list', item:$('#removeInput').val()});
+        }
+        
+        function clearList() {
+            $.post('/clearList', {listId:$('#clearListInput').val()});
         }
     
       
@@ -36,15 +44,15 @@
 	<body>
         <form action="/add" method='post'>
             <input id="addInput" type='text' name='item' />
-            <a id="addButton" href="" onClick="addItem(); return false;">Add!</a>
+            <button type="button" onClick="addItem(); return false;">Add!</button>
         </form>
         <form action="/remove" method='post'>
             <input id="removeInput" type='text' name='item' />
-            <button type="button" id="removeButton">Remove!</button>
+            <button type="button" onClick="removeItem(); return false;">Remove!</button>
         </form>
         <form action="/clearList" method='post'>
-            <input type='text' name='listId' />
-            <input type='submit' value='ClearList' />
+            <input id="clearListInput" type='text' name='listId' />
+            <button type="button" onClick="clearList(); return false;">ClearList</button>
         </form>
         <div>
             <p id="list"></p>
