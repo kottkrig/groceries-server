@@ -1,6 +1,6 @@
 var fs = require('fs');
 var querystring = require('querystring');
-var redis = require('redis-client');
+var redis = require('redis');
 var db = redis.createClient(9443, 'stingfish.redistogo.com');
 var dbAuth = function() {
   db.auth('eeabd0f6182a690e0c0c1df7556c85ae');
@@ -8,9 +8,11 @@ var dbAuth = function() {
 
 db.addListener('connected', dbAuth);
 db.addListener('reconnected', dbAuth);
+dbAuth();
 
 var ACTIVE_LIST = "list";
 var COMPLETED = "completed";
+var EMPTY_SET = 'empty';
 
 function start(response, postData) {
     fs.readFile(__dirname + '/index.html', function (err, data) {
@@ -22,58 +24,70 @@ function start(response, postData) {
     });
 }
 
-function add(response, postData, io) {
-    var postValues = querystring.parse(postData);
-    db.sadd(ACTIVE_LIST, postValues.item);
-    
-    io.sockets.emit('update', { hello: 'world' });
-    respond(response, 200, "text/plain", "successfully added");
+function add(response, postData) {
+    var json = querystring.parse(postData);
+    db.sadd(ACTIVE_LIST, json.item, function(err, value) {
+        if(!err) {
+            respondWithOK(response, 'Successfully added item');  
+        } else {
+            respondWithError(response, 'Could not add item');    
+        }
+    });
+    //io.sockets.emit('update', { hello: 'world' });
 }
 
 function remove(response, postData) {
-    var postValues = querystring.parse(postData);
-    db.smove(postValues.listId, 'autoComplete', postValues.item);
-    respondWithList(response, postValues.listId);
-}
-
-function getList(response, query) {
-    respondWithList(response, ACTIVE_LIST);   
-}
-
-function clearList(response, postData) {
-    var postValues = querystring.parse(postData);
-    db.smembers(postValues.listId, function(err, members) {
+    var json = querystring.parse(postData);
+    db.smove(ACTIVE_LIST, COMPLETED, json.item, function(err, value) {
         if(!err) {
-            members = members + '';
-            var memberList = members.split(',');
-            for(var i = 0; i < memberList.length; i++) {
-                db.srem(postValues.listId, memberList[i]);
-            }
-            respondWithList(response, postValues.listId);
+            respondWithOK(response, 'Successfully removed item');  
         } else {
-            respondWithError(response, 'Error when clearing list');
+            respondWithError(response, 'Could not remove item');    
         }
     });
 }
+
+function getList(response, query) {
+    db.smembers(ACTIVE_LIST, function(err, members) {
+        if(!err) {
+            var jsonString = querystring.stringify(members);
+            var json = querystring.parse(jsonString);
+            
+            var items = [];
+            for(var i = 0; i < members.length; i++) {
+                items[i] = json[i];
+            }
+            var itemsJsonString = JSON.stringify({'items': items});
+            
+            respondWithOK(response, 'List ' + ACTIVE_LIST + ': ' + itemsJsonString);
+        } else {
+            respondWithError(response, 'Error when fetching list from database');   
+        }
+    });
+}
+
+function clearList(response, postData) {
+    db.sinterstore(ACTIVE_LIST, EMPTY_SET, function(err, value) {
+        if(!err) {
+            respondWithOK(response, 'Successfully cleared list');  
+        } else {
+            respondWithError(response, 'Could not clear list');    
+        }
+    });
+}   
 
 function respond(response, statusCode, contentType, message) {
     response.writeHead(statusCode, {"Content-Type": contentType});
     response.end(message);
 }
 
-function respondWithError(response, message) {
-    respond(response, 500, 'text/plain', message);
+function respondWithOK(response, message) {
+    respond(response, 200, 'text/plain', message);   
 }
 
-function respondWithList(response, listId) {
-    db.smembers(listId, function(err, value) {
-        if (!err) {
-            respond(response, 200, 'text/plain', "List " + listId + " from database: " + value);
-        } else {
-            respondWithError(response, 'Error fetching members from database');
-        }
-    });
-}
+function respondWithError(response, message) {
+    respond(response, 500, 'text/plain', message);
+}    
 
 exports.start = start;
 exports.add = add;
