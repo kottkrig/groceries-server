@@ -11,8 +11,11 @@ db.addListener('reconnected', dbAuth);
 dbAuth();
 
 var ACTIVE_LIST = "list";
-var COMPLETED = "completed";
+var DONE = "done";
 var EMPTY_SET = 'empty';
+
+var FIRST_ITEM = 0;
+var LAST_ITEM = -1;
 
 function start(response, postData) {
     fs.readFile(__dirname + '/index.html', function (err, data) {
@@ -26,7 +29,7 @@ function start(response, postData) {
 
 function add(response, postData) {
     var json = querystring.parse(postData);
-    db.sadd(ACTIVE_LIST, json.item, function(err, value) {
+    db.zadd(ACTIVE_LIST, 0, json.item, function(err, value) {
         if(!err) {
             respondWithOK(response, 'Successfully added item');  
         } else {
@@ -38,17 +41,23 @@ function add(response, postData) {
 
 function remove(response, postData) {
     var json = querystring.parse(postData);
-    db.smove(ACTIVE_LIST, COMPLETED, json.item, function(err, value) {
-        if(!err) {
-            respondWithOK(response, 'Successfully removed item');  
+    db.zrem(ACTIVE_LIST, json.item, function(err, value) {
+        if(!err && value == 1) {
+            db.zadd(DONE, 0, json.item, function(err, value) {
+                if(!err) {
+                    respondWithOK(response, 'Successfully removed item');  
+                } else {
+                    respondWithError(response, 'Could not add item to DONE');    
+                }
+            });
         } else {
-            respondWithError(response, 'Could not remove item');    
+            respondWithError(response, 'Could not remove item');
         }
     });
 }
 
 function getList(response, query) {
-    db.smembers(ACTIVE_LIST, function(err, members) {
+    db.zrange(ACTIVE_LIST, FIRST_ITEM, LAST_ITEM, function(err, members) {
         if(!err) {
             var jsonString = querystring.stringify(members);
             var json = querystring.parse(jsonString);
@@ -67,10 +76,12 @@ function getList(response, query) {
 }
 
 function clearList(response, postData) {
-    db.sinterstore(ACTIVE_LIST, EMPTY_SET, function(err, value) {
+    db.zinterstore(ACTIVE_LIST, 2, ACTIVE_LIST, EMPTY_SET, function(err, value) {
         if(!err) {
+            console.log('Cleared list');
             respondWithOK(response, 'Successfully cleared list');  
         } else {
+            console.log('Could not clear list');
             respondWithError(response, 'Could not clear list');    
         }
     });
