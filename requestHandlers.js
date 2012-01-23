@@ -78,10 +78,8 @@ function getList(response, query) {
 function clearList(response, postData) {
     db.zinterstore(ACTIVE_LIST, 2, ACTIVE_LIST, EMPTY_SET, function(err, value) {
         if(!err) {
-            console.log('Cleared list');
             respondWithOK(response, 'Successfully cleared list');  
         } else {
-            console.log('Could not clear list');
             respondWithError(response, 'Could not clear list');    
         }
     });
