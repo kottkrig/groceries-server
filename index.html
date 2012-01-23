@@ -27,18 +27,21 @@
         }
         
         function addItem() {
-            $.post('/add', {listId:'list', item:$('#addInput').val()});
-            window.location.reload();
+            $.post('/add', {listId:'list', item:$('#addInput').val()}, function(data) {
+                window.location.reload();
+            });
         }
         
         function removeItem() {
-            $.post('/remove', {listId:'list', item:$('#removeInput').val()});
-            window.location.reload();
+            $.post('/remove', {listId:'list', item:$('#removeInput').val()}, function(data) {
+                window.location.reload();
+            });
         }
         
         function clearList() {
-            $.post('/clearList', {listId:$('#clearListInput').val()});
-            window.location.reload();
+            $.post('/clearList', {listId:$('#clearListInput').val()}, function(data) {
+                window.location.reload();
+            });
         }
     
       
