@@ -28,14 +28,17 @@
         
         function addItem() {
             $.post('/add', {listId:'list', item:$('#addInput').val()});
+            window.location.reload();
         }
         
         function removeItem() {
             $.post('/remove', {listId:'list', item:$('#removeInput').val()});
+            window.location.reload();
         }
         
         function clearList() {
             $.post('/clearList', {listId:$('#clearListInput').val()});
+            window.location.reload();
         }
     
       
