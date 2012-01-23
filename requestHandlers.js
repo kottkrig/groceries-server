@@ -9,6 +9,9 @@ var dbAuth = function() {
 db.addListener('connected', dbAuth);
 db.addListener('reconnected', dbAuth);
 
+var ACTIVE_LIST = "list";
+var COMPLETED = "completed";
+
 function respond(response, statusCode, contentType, message) {
     response.writeHead(statusCode, {"Content-Type": contentType});
     response.end(message);
@@ -38,10 +41,12 @@ function start(response, postData) {
     });
 }
 
-function add(response, postData) {
+function add(response, postData, io) {
     var postValues = querystring.parse(postData);
-    db.sadd(postValues.listId, postValues.item);
-    respondWithList(response, postValues.listId);
+    db.sadd(ACTIVE_LIST, postValues.item);
+    
+    io.sockets.emit('update', { hello: 'world' });
+    respond(response, 200, "text/plain", "successfully added");
 }
 
 function remove(response, postData) {
@@ -51,7 +56,7 @@ function remove(response, postData) {
 }
 
 function getList(response, query) {
-    respondWithList(response, query.listId);   
+    respondWithList(response, ACTIVE_LIST);   
 }
 
 function clearList(response, postData) {

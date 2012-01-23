@@ -3,37 +3,52 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
     <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-    <!--<script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-      var socket = io.connect();
-      console.log('Client is running.');
-      socket.on('news', function (data) {
-        console.log('News!');
-        console.log(data);
-        socket.emit('my other event', { my: 'data' });
-        console.log('Client emitted my other event');
-      });
-    </script>-->
+    
+        $(document).ready(function() {
+            getList();
+            initSocket();
+        });
+        
+        function initSocket() {
+            var socket = io.connect();
+            console.log('Client is running.');
+            socket.on('update', function (data) {
+                console.log('Update event Received!');
+                getList();
+            });
+        }
+        
+        function getList() {
+            $.get('/getList', {listId:'list'}, function(data) {
+                $('#list').html(data);
+            });
+        }
+        
+        function addItem() {
+            $.post('/add', {listId:'list', item:$("#addInput").text()});
+        }
+    
+      
+    </script>
 	</head>
 	<body>
         <form action="/add" method='post'>
-            <input type='text' name='item' />
-            <input type='text' name='listId' />
-            <input type='submit' value='Add' />
+            <input id="addInput" type='text' name='item' />
+            <a id="addButton" href="" onClick="addItem(); return false;">Add!</a>
         </form>
         <form action="/remove" method='post'>
-            <input type='text' name='item' />
-            <input type='text' name='listId' />
-            <input type='submit' value='Remove' />
-        </form>
-        <form action="/getList" method='get'>
-            <input type='text' name='listId' />
-            <input type='submit' value='GetList' />
+            <input id="removeInput" type='text' name='item' />
+            <button type="button" id="removeButton">Remove!</button>
         </form>
         <form action="/clearList" method='post'>
             <input type='text' name='listId' />
             <input type='submit' value='ClearList' />
         </form>
+        <div>
+            <p id="list"></p>
+        </div>
 	</body>
 </html>
 

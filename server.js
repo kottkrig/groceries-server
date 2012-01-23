@@ -1,5 +1,5 @@
 var http = require("http");
-//var socketIo = require('socket.io'); 
+var socketIo = require('socket.io'); 
 var url = require("url");
 
 function start(route, handle) {
@@ -19,7 +19,7 @@ function start(route, handle) {
             if(request.method == 'GET') {
                 route(handle, pathname, response, uri.query);
             } else {
-                route(handle, pathname, response, postData);
+                route(handle, pathname, response, postData, io);
             }
         });
     }
@@ -29,7 +29,7 @@ function start(route, handle) {
     app.listen(port);
     console.log("Server has started.");
 
-    /*var io = socketIo.listen(app);
+    var io = socketIo.listen(app);
     
     // Socket config for Heroku
     io.configure(function() {
@@ -49,7 +49,7 @@ function start(route, handle) {
         });
     }
         
-    io.sockets.on('connection', onConnection);*/
+    io.sockets.on('connection', onConnection);
 }
 
 exports.start = start;
