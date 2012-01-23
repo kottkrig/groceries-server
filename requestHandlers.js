@@ -12,25 +12,6 @@ db.addListener('reconnected', dbAuth);
 var ACTIVE_LIST = "list";
 var COMPLETED = "completed";
 
-function respond(response, statusCode, contentType, message) {
-    response.writeHead(statusCode, {"Content-Type": contentType});
-    response.end(message);
-}
-
-function respondWithError(response, message) {
-    respond(response, 500, 'text/plain', message);
-}
-
-function respondWithList(response, listId) {
-    db.smembers(listId, function(err, value) {
-        if (!err) {
-            respond(response, 200, 'text/plain', "List " + listId + " from database: " + value);
-        } else {
-            respondWithError(response, 'Error fetching members from database');
-        }
-    });
-}
-
 function start(response, postData) {
     fs.readFile(__dirname + '/index.html', function (err, data) {
         if (!err) {
@@ -71,6 +52,25 @@ function clearList(response, postData) {
             respondWithList(response, postValues.listId);
         } else {
             respondWithError(response, 'Error when clearing list');
+        }
+    });
+}
+
+function respond(response, statusCode, contentType, message) {
+    response.writeHead(statusCode, {"Content-Type": contentType});
+    response.end(message);
+}
+
+function respondWithError(response, message) {
+    respond(response, 500, 'text/plain', message);
+}
+
+function respondWithList(response, listId) {
+    db.smembers(listId, function(err, value) {
+        if (!err) {
+            respond(response, 200, 'text/plain', "List " + listId + " from database: " + value);
+        } else {
+            respondWithError(response, 'Error fetching members from database');
         }
     });
 }
