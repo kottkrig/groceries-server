@@ -28,19 +28,19 @@
         
         function addItem() {
             $.post('/add', {listId:'list', item:$('#addInput').val()}, function(data) {
-                window.location.reload();
+                getList();
             });
         }
         
         function removeItem() {
             $.post('/remove', {listId:'list', item:$('#removeInput').val()}, function(data) {
-                window.location.reload();
+                getList();
             });
         }
         
         function clearList() {
             $.post('/clearList', {listId:$('#clearListInput').val()}, function(data) {
-                window.location.reload();
+                getList();
             });
         }
     
