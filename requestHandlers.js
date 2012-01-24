@@ -13,6 +13,7 @@ dbAuth();
 var ACTIVE_ID = 'activeId';
 var DONE_ID = 'doneId';
 var EMPTY_SET = 'empty';
+var LAST_LIST_ID = 0;
 
 var FIRST_ITEM = 0;
 var LAST_ITEM = -1;
@@ -22,14 +23,17 @@ function start(response, postData) {
         if(err)
             respondWithError(response, 'Error loading index.html');
         respond(response, 200, 'text/html', data); 
-    });  
-    newList();
+    });
 }
 
-function newList() {
-    var listId = 'a9f87612def3';
-    db.hset(listId, ACTIVE_ID, listId + '_active');
-    db.hset(listId, DONE_ID, listId + '_done');       
+function newList(response, nonUsedArgument) {
+    db.incr(LAST_LIST_ID, function(err, newListId) {
+        if(err)
+            return respondWithError(response, 'Could not create new list');
+        db.hset(newListId, ACTIVE_ID, newListId + '_active');
+        db.hset(newListId, DONE_ID, newListId + '_done');     
+        LAST_LIST_ID = newListId;
+    });
 }    
 
 function add(response, postData) {   
@@ -123,3 +127,4 @@ exports.add = add;
 exports.remove = remove;
 exports.getList = getList;
 exports.clearList = clearList;
+exports.newList = newList;
