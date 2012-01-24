@@ -21,7 +21,7 @@
         }
         
         function getList() {
-            $.getJSON('/getList', {listId:'list'}, function(data) {
+            $.getJSON('/getList', {listId:'a9f87612def3'}, function(data) {
                 $('#list').html("<ul></ul>");
                 $.each(data.items, function(key, val) {
                     $('#list ul').append('<li id="' + key + '">' + val + '</li>');
@@ -30,13 +30,13 @@
         }
         
         function addItem() {
-            $.post('/add', {listId:'list', item:$('#addInput').val()}, function(data) {
+            $.post('/add', {listId:'a9f87612def3', item:$('#addInput').val()}, function(data) {
                 getList();
             });
         }
         
         function removeItem() {
-            $.post('/remove', {listId:'list', item:$('#removeInput').val()}, function(data) {
+            $.post('/remove', {listId:'a9f87612def3', item:$('#removeInput').val()}, function(data) {
                 getList();
             });
         }
