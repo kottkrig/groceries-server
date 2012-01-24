@@ -68,7 +68,7 @@ function getList(response, query) {
             }
             var itemsJsonString = JSON.stringify({'items': items});
             
-            respondWithOK(response, 'List ' + ACTIVE_LIST + ': ' + itemsJsonString);
+            respondWithJson(response, itemsJsonString);
         } else {
             respondWithError(response, 'Error when fetching list from database');   
         }
@@ -92,6 +92,10 @@ function respond(response, statusCode, contentType, message) {
 
 function respondWithOK(response, message) {
     respond(response, 200, 'text/plain', message);   
+}
+
+function respondWithJson(response, message) {
+    respond(response, 200, 'application/json', message);
 }
 
 function respondWithError(response, message) {

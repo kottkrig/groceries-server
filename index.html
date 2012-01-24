@@ -21,8 +21,11 @@
         }
         
         function getList() {
-            $.get('/getList', {listId:'list'}, function(data) {
-                $('#list').html(data);
+            $.getJSON('/getList', {listId:'list'}, function(data) {
+                $('#list').html("<ul></ul>");
+                $.each(data.items, function(key, val) {
+                    $('#list ul').append('<li id="' + key + '">' + val + '</li>');
+                });
             });
         }
         
