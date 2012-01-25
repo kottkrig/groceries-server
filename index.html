@@ -7,7 +7,17 @@
     <script>
     
         $(document).ready(function() {
-            getList();
+            
+            var listId = 'a9f87612def3';
+            
+            if (localStorage.listId == undefined) {
+                getListId();
+            } else {
+                getList();
+            }
+            
+            
+            //getList();
             //initSocket();
         });
         
@@ -20,8 +30,15 @@
             });
         }
         
+        function getListId() {
+            $.get('/newList', function(data) {
+                console.log("New list created: "+data);
+                localStorage.listId = data;
+            });
+        }
+        
         function getList() {
-            $.getJSON('/getList', {listId:'a9f87612def3'}, function(data) {
+            $.getJSON('/getList', {listId:localStorage.listId}, function(data) {
                 $('#list').html("<ul></ul>");
                 $.each(data.items, function(key, val) {
                     $('#list ul').append('<li id="' + key + '">' + val + '</li>');
@@ -30,19 +47,19 @@
         }
         
         function addItem() {
-            $.post('/add', {listId:'a9f87612def3', item:$('#addInput').val()}, function(data) {
+            $.post('/add', {listId:localStorage.listId, item:$('#addInput').val()}, function(data) {
                 getList();
             });
         }
         
         function removeItem() {
-            $.post('/remove', {listId:'a9f87612def3', item:$('#removeInput').val()}, function(data) {
+            $.post('/remove', {listId:localStorage.listId, item:$('#removeInput').val()}, function(data) {
                 getList();
             });
         }
         
         function clearList() {
-            $.post('/clearList', {listId:$('#clearListInput').val()}, function(data) {
+            $.post('/clearList', {listId:localStorage.listId}, function(data) {
                 getList();
             });
         }
