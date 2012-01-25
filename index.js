@@ -9,5 +9,6 @@ handle["/add"] = requestHandlers.add;
 handle["/remove"] = requestHandlers.remove;
 handle["/getList"] = requestHandlers.getList;
 handle["/clearList"] = requestHandlers.clearList;
+handle["/newList"] = requestHandlers.newList;
 
 server.start(router.route, handle);
