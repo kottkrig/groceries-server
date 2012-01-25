@@ -33,6 +33,7 @@ function newList(response, nonUsedArgument) {
         db.hset(newListId, ACTIVE_ID, newListId + '_active');
         db.hset(newListId, DONE_ID, newListId + '_done');     
         LAST_LIST_ID = newListId;
+        respondWithOK(response, newListId + '');
     });
 }    
 
