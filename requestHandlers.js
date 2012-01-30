@@ -50,12 +50,10 @@ function add(response, postData) {
             respondWithOK(response, 'Successfully added item');
         });
     });
-    //io.sockets.emit('update', { hello: 'world' });
 }
 
 function remove(response, postData) {
     var json = querystring.parse(postData);
-
     db.hget(json.listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
@@ -70,7 +68,7 @@ function remove(response, postData) {
                 db.zadd(doneListId, 0, json.item, function(err, value) {
                     if(err)
                         return respondWithError(response, 'Could not add item to DONE');    
-                    respondWithOK(response, 'Successfully removed item');  
+                    respondWithOK(response, 'Successfully removed item'); 
                 }); 
             });
         });
@@ -101,7 +99,7 @@ function clearList(response, postData) {
         db.zinterstore(activeListId, 2, activeListId, EMPTY_SET, function(err, value) {
             if(err)
                 return respondWithError(response, 'Could not clear list');    
-            respondWithOK(response, 'Successfully cleared list');  
+            respondWithOK(response, 'Successfully cleared list');
         });
     });
 }
