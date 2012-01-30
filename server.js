@@ -32,13 +32,11 @@ function start(route, handle) {
 
     var io = socketIo.listen(app);
 
-    /*
     // Socket config for Heroku
     io.configure(function() {
         io.set('transports', ['xhr-polling']);
         io.set('polling duration', 10);
     });
-    */
 
     io.of('/8').on('connection', function(socket) {
         socket.on('disconnect', function() {
