@@ -68,10 +68,11 @@
             });
         }
         
-        function setList() {
+        function setListId() {
             localStorage.listId = $('#setListInput').val();
             socket.emit('connectToList', localStorage.listId);
-                console.log('Connected to list ' + localStorage.listId);
+            console.log('Connected to list ' + localStorage.listId);
+            getList();
         }    
     </script>
 	</head>
@@ -88,9 +89,9 @@
             <input id="clearListInput" type='text' name='listId' />
             <button type="button" onClick="clearList(); return false;">ClearList</button>
         </form>
-        <form action="/setList" method='post'>
-            <input id="setListInput" type='text' name='setListId' />
-            <button type="button" onClick="setList(); return false;">ClearList</button>
+        <form>
+            <input id="setListInput" type='text'/>
+            <button type="button" onClick="setListId(); return false;">SetListId</button>
         </form>
         <div>
             <p id="list"></p>

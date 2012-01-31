@@ -37,12 +37,8 @@ function start(route, handle) {
         io.set('polling duration', 10);
     });
 */
-    var lists = [];
-    
     io.sockets.on('connection', function(socket) {
         socket.on('connectToList', function(listId) {
-            if(lists.indexOf(listId) == -1)
-                lists.push(listId);
             socket.join(listId);
             socket.listId = listId;
             socket.broadcast.to(listId).send('I have joined the list');
