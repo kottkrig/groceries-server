@@ -5,6 +5,9 @@
     <script src="http://code.jquery.com/jquery-latest.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+    
+        var socket;
+        
         $(document).ready(function() {
             //var listId = 'a9f87612def3';
             var listId = '8';
@@ -17,11 +20,14 @@
         });
         
         function initSocket() {
-            var socket = io.connect('/8');
+            socket = io.connect();
+            /*socket.on('connect', function() {
+                socket.emit('connectToList', localStorage.listId);
+                console.log('Connected to list ' + localStorage.listId);
+            });*/
             console.log('Client is running.');
-            socket.on('update', function (data) {
+            socket.on('update', function () {
                 console.log('Update event Received!');
-                socket.emit('listChanged');
                 getList();
             });
         }
@@ -44,12 +50,14 @@
         
         function addItem() {
             $.post('/add', {listId:localStorage.listId, item:$('#addInput').val()}, function(data) {
+                socket.emit('listChanged', localStorage.listId);
                 getList();
             });
         }
         
         function removeItem() {
             $.post('/remove', {listId:localStorage.listId, item:$('#removeInput').val()}, function(data) {
+                socket.emit('listChanged', localStorage.listId);
                 getList();
             });
         }
@@ -59,6 +67,12 @@
                 getList();
             });
         }
+        
+        function setList() {
+            localStorage.listId = $('#setListInput').val();
+            socket.emit('connectToList', localStorage.listId);
+                console.log('Connected to list ' + localStorage.listId);
+        }    
     </script>
 	</head>
 	<body>
@@ -73,6 +87,10 @@
         <form action="/clearList" method='post'>
             <input id="clearListInput" type='text' name='listId' />
             <button type="button" onClick="clearList(); return false;">ClearList</button>
+        </form>
+        <form action="/setList" method='post'>
+            <input id="setListInput" type='text' name='setListId' />
+            <button type="button" onClick="setList(); return false;">ClearList</button>
         </form>
         <div>
             <p id="list"></p>

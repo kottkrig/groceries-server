@@ -20,7 +20,6 @@ function start(route, handle) {
                 route(handle, pathname, response, uri.query);
             } else {
                 route(handle, pathname, response, postData);
-                emitUpdate();
             }
         });
     }
@@ -31,20 +30,32 @@ function start(route, handle) {
     console.log("Server has started.");
 
     var io = socketIo.listen(app);
-
+/*
     // Socket config for Heroku
     io.configure(function() {
         io.set('transports', ['xhr-polling']);
         io.set('polling duration', 10);
     });
-
-    io.of('/8').on('connection', function(socket) {
+*/
+    var lists = [];
+    
+    io.sockets.on('connection', function(socket) {
+        socket.on('connectToList', function(listId) {
+            if(lists.indexOf(listId) == -1)
+                lists.push(listId);
+            socket.join(listId);
+            socket.listId = listId;
+            socket.broadcast.to(listId).send('I have joined the list');
+        });
+        
         socket.on('disconnect', function() {
+            socket.leave(socket.listId);
             console.log('Client disconnected');
         });
         
-        socket.on('listChanged', function() {
-            console.log('List changed');
+        socket.on('listChanged', function(listId) {
+            console.log('List ' + listId + ' changed');
+            socket.broadcast.to(listId).emit('update');
         });
     });
     
