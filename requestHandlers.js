@@ -26,7 +26,7 @@ function start(response, postData) {
     });
 }
 
-function newList(response, nonUsedArgument) {
+function newList(response) {
     db.incr(LAST_LIST_ID, function(err, newListId) {
         if(err)
             return respondWithError(response, 'Could not create new list');
@@ -37,49 +37,45 @@ function newList(response, nonUsedArgument) {
     });
 }    
 
-function add(response, postData) {   
-    var json = querystring.parse(postData);
-    db.hget(json.listId, ACTIVE_ID, function(err, listId) {
+function add(response, listId, item) {
+    db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
-        
-        db.zadd(listId, 0, json.item, function(err, value) {
+        db.zadd(activeListId, 0, item, function(err, value) {
             if(err)
                 return respondWithError(response, 'Could not add item');
-                
             respondWithOK(response, 'Successfully added item');
         });
     });
 }
 
-function remove(response, postData) {
-    var json = querystring.parse(postData);
-    db.hget(json.listId, ACTIVE_ID, function(err, activeListId) {
+function remove(response, listId, item) {
+    db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
-        db.hget(json.listId, DONE_ID, function(err, doneListId) {
+        db.hget(listId, DONE_ID, function(err, doneListId) {
             if(err)
                 return respondWithError(response, 'Could not find list');
-            db.zrem(activeListId, json.item, function(err, value) {
+            db.zrem(activeListId, item, function(err, value) {
                 if(err)
                     return respondWithError(response, 'Could not remove item');
                 if(value != 1)
-                    return respondWithOK(response, 'Successfully removed item'); 
-                db.zadd(doneListId, 0, json.item, function(err, value) {
+                    return respondWithOK(response, 'Item not in list'); 
+                db.zadd(doneListId, 0, item, function(err, value) {
                     if(err)
                         return respondWithError(response, 'Could not add item to DONE');    
                     respondWithOK(response, 'Successfully removed item'); 
                 }); 
             });
         });
-    }); 
+    });
 }
 
-function getList(response, query) {    
-    db.hget(query.listId, ACTIVE_ID, function(err, listId) {
+function getList(response, listId) {    
+    db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return respondWithError(response, 'Error when fetching list from database');   
-        db.zrange(listId, FIRST_ITEM, LAST_ITEM, function(err, members) {
+            return respondWithError(response, 'Could not find list');   
+        db.zrange(activeListId, FIRST_ITEM, LAST_ITEM, function(err, members) {
             if(err)
                 return respondWithError(response, 'Error when fetching list from database');   
             var items = [];
@@ -102,6 +98,17 @@ function clearList(response, postData) {
             respondWithOK(response, 'Successfully cleared list');
         });
     });
+}
+
+function badRequest(response, statusCode) {
+    switch(statusCode) {
+    case 404: 
+        respond(response, 404, 'text/plain', '404 Not found');
+        break;
+    case 405:
+        respond(response, 405, 'text/plain', '405 Method not allowed');   
+        break;
+    }
 }
 
 function respond(response, statusCode, contentType, message) {
@@ -127,3 +134,4 @@ exports.remove = remove;
 exports.getList = getList;
 exports.clearList = clearList;
 exports.newList = newList;
+exports.badRequest = badRequest;

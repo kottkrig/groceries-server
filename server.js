@@ -5,22 +5,21 @@ var url = require("url");
 function start(route, handle) {
     function onRequest(request, response) {
         var postData = '';
-        var uri = url.parse(request.url, true);
         var pathname = url.parse(request.url).pathname;
+        var paths = pathname.split('/');
+        paths.shift(); //Remove first elem (empty because pathname starts with '/')
+        
         console.log("Request for " + pathname + " received.");
         
         request.setEncoding('utf8');
-        
         request.addListener('data', function(data) {
             postData += data;
         });
-        
         request.addListener('end', function() {
-            if(request.method == 'GET') {
-                route(handle, pathname, response, uri.query);
-            } else {
-                route(handle, pathname, response, postData);
-            }
+            if(pathname == '/')
+                handle['/'](response, postData);
+            else
+                route(handle, paths, request.method, response, postData);
         });
     }
     
@@ -58,10 +57,6 @@ function start(route, handle) {
             console.log('Server got message: ' + message);    
         });
     });
-    
-    function emitUpdate() {
-        io.of('/8').emit('update');
-    }
 } 
 
 exports.start = start;

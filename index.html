@@ -5,42 +5,37 @@
     <script src="http://code.jquery.com/jquery-latest.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-    
         var socket;
+        var listUri = '/list';
         
         $(document).ready(function() {
             //var listId = 'a9f87612def3';
             var listId = '8';
-            if (localStorage.listId == undefined) {
+            if (localStorage.listId == undefined)
                 getListId();
-            } else {
+            else
                 getList();
-            }
             initSocket();
         });
         
         function initSocket() {
             socket = io.connect();
-            /*socket.on('connect', function() {
-                socket.emit('connectToList', localStorage.listId);
-                console.log('Connected to list ' + localStorage.listId);
-            });*/
             console.log('Client is running.');
             socket.on('update', function () {
                 console.log('Update event Received!');
                 getList();
             });
         }
-        
         function getListId() {
-            $.get('/newList', function(data) {
+            $.post(listUri, function(data) {
                 console.log("New list created: "+data);
                 localStorage.listId = data;
             });
         }
         
         function getList() {
-            $.getJSON('/getList', {listId:localStorage.listId}, function(data) {
+            var url = listUri + '/' + localStorage.listId;
+            $.getJSON(url, function(data) {
                 $('#list').html("<ul></ul>");
                 $.each(data.items, function(key, val) {
                     $('#list ul').append('<li id="' + key + '">' + val + '</li>');
@@ -49,22 +44,24 @@
         }
         
         function addItem() {
-            $.post('/add', {listId:localStorage.listId, item:$('#addInput').val()}, function(data) {
+            var url = listUri + '/' + localStorage.listId;
+            $.post(url, $('#addInput').val(), function(data) {
                 socket.emit('listChanged', localStorage.listId);
                 getList();
             });
         }
         
         function removeItem() {
-            $.post('/remove', {listId:localStorage.listId, item:$('#removeInput').val()}, function(data) {
-                socket.emit('listChanged', localStorage.listId);
-                getList();
-            });
-        }
-        
-        function clearList() {
-            $.post('/clearList', {listId:localStorage.listId}, function(data) {
-                getList();
+            var url = listUri + '/' + localStorage.listId;
+            var data = $('#removeInput').val();
+            $.ajax({
+                type: 'DELETE',
+                url: url,
+                data: data,
+                success: function(msg) {
+                    socket.emit('listChanged', localStorage.listId);
+                    getList();
+                }
             });
         }
         
@@ -84,10 +81,6 @@
         <form action="/remove" method='post'>
             <input id="removeInput" type='text' name='item' />
             <button type="button" onClick="removeItem(); return false;">Remove!</button>
-        </form>
-        <form action="/clearList" method='post'>
-            <input id="clearListInput" type='text' name='listId' />
-            <button type="button" onClick="clearList(); return false;">ClearList</button>
         </form>
         <form>
             <input id="setListInput" type='text'/>

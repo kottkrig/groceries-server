@@ -4,11 +4,11 @@ var requestHandlers = require("./requestHandlers");
 
 var handle = {};
 handle["/"] = requestHandlers.start;
-handle["/start"] = requestHandlers.start;
-handle["/add"] = requestHandlers.add;
-handle["/remove"] = requestHandlers.remove;
-handle["/getList"] = requestHandlers.getList;
-handle["/clearList"] = requestHandlers.clearList;
-handle["/newList"] = requestHandlers.newList;
+handle.add = requestHandlers.add;
+handle.remove = requestHandlers.remove;
+handle.getList = requestHandlers.getList;
+handle.clearList = requestHandlers.clearList;
+handle.newList = requestHandlers.newList;
+handle.badRequest = requestHandlers.badRequest;
 
 server.start(router.route, handle);
