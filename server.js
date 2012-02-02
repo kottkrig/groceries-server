@@ -53,6 +53,10 @@ function start(route, handle) {
             console.log('List ' + listId + ' changed');
             socket.broadcast.to(listId).emit('update');
         });
+        
+        socket.on('message', function(message) {
+            console.log('Server got message: ' + message);    
+        });
     });
     
     function emitUpdate() {
