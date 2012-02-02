@@ -41,10 +41,14 @@ function add(response, listId, item) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
-        db.zadd(activeListId, 0, item, function(err, value) {
+        db.zcard(activeListId, function(err, cardinality) {
             if(err)
-                return respondWithError(response, 'Could not add item');
-            respondWithOK(response, 'Successfully added item');
+                return respondWithError(response, '500 Internal server error');
+            db.zadd(activeListId, cardinality, item, function(err, value) {
+                if(err)
+                    return respondWithError(response, 'Could not add item');
+                respondWithOK(response, 'Successfully added item');
+            });
         });
     });
 }
