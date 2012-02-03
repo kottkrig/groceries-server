@@ -45,19 +45,29 @@
         
         function addItem() {
             var url = listUri + '/' + localStorage.listId;
-            $.post(url, $('#addInput').val(), function(data) {
+            $.post(url, {item:$('#addInput').val()}, function(data) {
                 socket.emit('listChanged', localStorage.listId);
                 getList();
             });
         }
         
         function removeItem() {
-            var url = listUri + '/' + localStorage.listId;
-            var data = $('#removeInput').val();
+            var url = listUri + '/' + localStorage.listId + '/' + $('#removeInput').val();
             $.ajax({
                 type: 'DELETE',
                 url: url,
-                data: data,
+                success: function(msg) {
+                    socket.emit('listChanged', localStorage.listId);
+                    getList();
+                }
+            });
+        }
+        
+        function clearList() {
+            var url = listUri + '/' + localStorage.listId;
+            $.ajax({
+                type: 'DELETE',
+                url: url,
                 success: function(msg) {
                     socket.emit('listChanged', localStorage.listId);
                     getList();
@@ -85,6 +95,9 @@
         <form>
             <input id="setListInput" type='text'/>
             <button type="button" onClick="setListId(); return false;">SetListId</button>
+        </form>
+        <form>
+            <button type="button" onClick="clearList(); return false;">ClearList</button>
         </form>
         <div>
             <p id="list"></p>

@@ -18,7 +18,15 @@ var LAST_LIST_ID = 0;
 var FIRST_ITEM = 0;
 var LAST_ITEM = -1;
 
-function start(response, postData) {
+function android(response) {
+    fs.readFile(__dirname + '/index_android.html', function (err, data) {
+        if(err)
+            respondWithError(response, 'Error loading index_android.html');
+        respond(response, 200, 'text/html', data); 
+    });
+}
+
+function start(response) {
     fs.readFile(__dirname + '/index.html', function (err, data) {
         if(err)
             respondWithError(response, 'Error loading index.html');
@@ -37,7 +45,9 @@ function newList(response) {
     });
 }    
 
-function add(response, listId, item) {
+function add(response, listId, data) {
+    var item = querystring.parse(data).item;
+    console.log('Item: ' + item);
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
@@ -91,9 +101,8 @@ function getList(response, listId) {
     });
 }
 
-function clearList(response, postData) {
-    var json = querystring.parse(postData);
-    db.hget(json.listId, ACTIVE_ID, function(err, activeListId) {
+function clearList(response, listId) {
+    db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
         db.zinterstore(activeListId, 2, activeListId, EMPTY_SET, function(err, value) {
@@ -132,6 +141,7 @@ function respondWithError(response, message) {
     respond(response, 500, 'text/plain', message);
 }
 
+exports.android = android;
 exports.start = start;
 exports.add = add;
 exports.remove = remove;

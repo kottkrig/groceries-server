@@ -4,6 +4,7 @@ var requestHandlers = require("./requestHandlers");
 
 var handle = {};
 handle["/"] = requestHandlers.start;
+handle.android = requestHandlers.android;
 handle.add = requestHandlers.add;
 handle.remove = requestHandlers.remove;
 handle.getList = requestHandlers.getList;

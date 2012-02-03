@@ -17,7 +17,9 @@ function start(route, handle) {
         });
         request.addListener('end', function() {
             if(pathname == '/')
-                handle['/'](response, postData);
+                handle['/'](response);
+            else if(pathname == '/index-android.html')
+                handle.android(response);
             else
                 route(handle, paths, request.method, response, postData);
         });
@@ -40,7 +42,7 @@ function start(route, handle) {
         socket.on('connectToList', function(listId) {
             socket.join(listId);
             socket.listId = listId;
-            socket.broadcast.to(listId).send('I have joined the list');
+            console.log('Client connected to list ' + listId);
         });
         
         socket.on('disconnect', function() {
