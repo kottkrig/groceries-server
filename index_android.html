@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io.connect();
+        socket.on('update', function () {
+            Android.updateList();
+        });
+        
+        function listChanged(listId) {
+            socket.emit('listChanged', listId);
+        }
+        
+        function connectToList(listId) {
+            socket.emit('connectToList', listId);
+        }    
+    </script>
+	</head>
+	<body></body>
+</html>
