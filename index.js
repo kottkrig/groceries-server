@@ -10,6 +10,7 @@ handle.remove = requestHandlers.remove;
 handle.getList = requestHandlers.getList;
 handle.clearList = requestHandlers.clearList;
 handle.newList = requestHandlers.newList;
-handle.badRequest = requestHandlers.badRequest;
+handle.notFound = requestHandlers.notFound;
+handle.methodNotAllowed = requestHandlers.methodNotAllowed;
 
 server.start(router.route, handle);
