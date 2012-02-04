@@ -48,7 +48,11 @@ function newList(response) {
 }    
 
 function add(response, listId, data) {
+    console.log('Add data: ' + data);
     var item = querystring.parse(data).item;
+    if(item === undefined)
+        item = JSON.parse(data).item;
+        
     console.log('Item: ' + item);
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
