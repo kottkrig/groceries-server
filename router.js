@@ -9,7 +9,7 @@ function route(handle, paths, httpMethod, response, data) {
             if(httpMethod =='POST')
                 handle.newList(response);
             else
-                handle.badRequest(response, 405);
+                handle.notFound(response);
         } else if(paths.length == 2) {
             listId = decodeURIComponent(paths[1]);
             switch (httpMethod) {
@@ -23,7 +23,7 @@ function route(handle, paths, httpMethod, response, data) {
                 handle.add(response, listId, data);
                 break;
             default:
-                handle.badRequest(response, 405);
+                handle.methodNotAllowed(response, ['DELETE', 'GET', 'POST']);
                 break;
             }
         } else if(paths.length == 3) {
@@ -32,12 +32,12 @@ function route(handle, paths, httpMethod, response, data) {
             if(httpMethod == 'DELETE')
                 handle.remove(response, listId, item);
             else
-                handle.badRequest(response, 405);
+                handle.methodNotAllowed(response, ['DELETE']);
         } else {
-            handle.badRequest(response, 404);
+            handle.notFound(response);
         }
     } else {
-        handle.badRequest(response, 404);
+        handle.notFound(response);
     }        
 }
 

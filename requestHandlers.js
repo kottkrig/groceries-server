@@ -41,7 +41,9 @@ function newList(response) {
         db.hset(newListId, ACTIVE_ID, newListId + '_active');
         db.hset(newListId, DONE_ID, newListId + '_done');     
         LAST_LIST_ID = newListId;
-        respondWithOK(response, newListId + '');
+        var serverListURI = 'http://groceries-server.akire.c9.io/list/';
+        var absoluteURI = serverListURI + newListId;
+        respondWithCreated(response, absoluteURI, newListId + '');
     });
 }    
 
@@ -57,7 +59,7 @@ function add(response, listId, data) {
             db.zadd(activeListId, cardinality, item, function(err, value) {
                 if(err)
                     return respondWithError(response, 'Could not add item');
-                respondWithOK(response, 'Successfully added item');
+                respondWithNoContent(response);
             });
         });
     });
@@ -74,11 +76,11 @@ function remove(response, listId, item) {
                 if(err)
                     return respondWithError(response, 'Could not remove item');
                 if(value != 1)
-                    return respondWithOK(response, 'Item not in list'); 
+                    return respondWithNoContent(response); 
                 db.zadd(doneListId, 0, item, function(err, value) {
                     if(err)
                         return respondWithError(response, 'Could not add item to DONE');    
-                    respondWithOK(response, 'Successfully removed item'); 
+                    respondWithNoContent(response); 
                 }); 
             });
         });
@@ -108,22 +110,21 @@ function clearList(response, listId) {
         db.zinterstore(activeListId, 2, activeListId, EMPTY_SET, function(err, value) {
             if(err)
                 return respondWithError(response, 'Could not clear list');    
-            respondWithOK(response, 'Successfully cleared list');
+            respondWithNoContent(response);
         });
     });
 }
 
-function badRequest(response, statusCode) {
-    switch(statusCode) {
-    case 404: 
-        respond(response, 404, 'text/plain', '404 Not found');
-        break;
-    case 405:
-        respond(response, 405, 'text/plain', '405 Method not allowed');   
-        break;
-    }
+function notFound(response) {
+    response.writeHeader(404, {'Content-Length': '0'});
+    response.end();
 }
 
+function methodNotAllowed(response, allow) {
+    response.writeHeader(405, {'Allow': allow, 'Content-Length': '0'});
+    response.end();
+}    
+    
 function respond(response, statusCode, contentType, message) {
     response.writeHead(statusCode, {"Content-Type": contentType});
     response.end(message);
@@ -131,6 +132,16 @@ function respond(response, statusCode, contentType, message) {
 
 function respondWithOK(response, message) {
     respond(response, 200, 'text/plain', message);   
+}
+
+function respondWithNoContent(response) {
+    response.writeHead(204, {'Content-Length': '0'});
+    response.end();
+}
+
+function respondWithCreated(response, absoluteURI, message) {
+    response.writeHead(201, {'Location': absoluteURI, 'Content-Type': 'text/plain'});
+    response.end(message);
 }
 
 function respondWithJson(response, message) {
@@ -148,4 +159,5 @@ exports.remove = remove;
 exports.getList = getList;
 exports.clearList = clearList;
 exports.newList = newList;
-exports.badRequest = badRequest;
+exports.methodNotAllowed = methodNotAllowed;
+exports.notFound = notFound;
