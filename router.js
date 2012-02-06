@@ -1,4 +1,4 @@
-function route(handle, paths, httpMethod, response, data) {
+function route(handle, paths, httpMethod, response, serverSocket, data) {
     console.log('About to route a ' + httpMethod + ' request.');
     
     var listId;
@@ -15,13 +15,13 @@ function route(handle, paths, httpMethod, response, data) {
             var decodedData = decodeURIComponent(data);
             switch (httpMethod) {
             case 'DELETE':
-                handle.clearList(response, listId);
+                handle.clearList(response, serverSocket, listId);
                 break;
             case 'GET':
                 handle.getList(response, listId);
                 break;
             case 'POST':
-                handle.add(response, listId, decodedData);
+                handle.add(response, serverSocket, listId, decodedData);
                 break;
             default:
                 handle.methodNotAllowed(response, ['DELETE', 'GET', 'POST']);
@@ -31,7 +31,7 @@ function route(handle, paths, httpMethod, response, data) {
             listId = decodeURIComponent(paths[1]);
             item = decodeURIComponent(paths[2]);
             if(httpMethod == 'DELETE')
-                handle.remove(response, listId, item);
+                handle.remove(response, serverSocket, listId, item);
             else
                 handle.methodNotAllowed(response, ['DELETE']);
         } else {

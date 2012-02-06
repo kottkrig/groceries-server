@@ -25,6 +25,10 @@
                 console.log('Update event Received!');
                 getList();
             });
+            
+            socket.on('message', function(message) {
+                console.log('Got message: ' + message);    
+            });
         }
         function getListId() {
             $.post(listUri, function(data) {
@@ -46,8 +50,7 @@
         function addItem() {
             var url = listUri + '/' + localStorage.listId;
             $.post(url, {item:$('#addInput').val()}, function(data) {
-                socket.emit('listChanged', localStorage.listId);
-                getList();
+                console.log('Added item to list');
             });
         }
         
@@ -57,8 +60,7 @@
                 type: 'DELETE',
                 url: url,
                 success: function(msg) {
-                    socket.emit('listChanged', localStorage.listId);
-                    getList();
+                    console.log('Removed item from list');
                 }
             });
         }
@@ -69,8 +71,7 @@
                 type: 'DELETE',
                 url: url,
                 success: function(msg) {
-                    socket.emit('listChanged', localStorage.listId);
-                    getList();
+                    console.log('Cleared list');
                 }
             });
         }

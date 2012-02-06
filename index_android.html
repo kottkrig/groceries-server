@@ -9,9 +9,9 @@
             Android.updateList();
         });
         
-        function listChanged(listId) {
-            socket.emit('listChanged', listId);
-        }
+        socket.on('message', function(message) {
+            Android.logMessage(message);    
+        });
         
         function connectToList(listId) {
             socket.emit('connectToList', listId);

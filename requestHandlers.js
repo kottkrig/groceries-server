@@ -47,7 +47,7 @@ function newList(response) {
     });
 }    
 
-function add(response, listId, data) {
+function add(response, serverSocket, listId, data) {
     console.log('Add data: ' + data);
     var item = querystring.parse(data).item;
     if(item === undefined)
@@ -64,12 +64,13 @@ function add(response, listId, data) {
                 if(err)
                     return respondWithError(response, 'Could not add item');
                 respondWithNoContent(response);
+                emitUpdateToRoom(serverSocket, listId);
             });
         });
     });
 }
 
-function remove(response, listId, item) {
+function remove(response, serverSocket, listId, item) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
@@ -84,7 +85,8 @@ function remove(response, listId, item) {
                 db.zadd(doneListId, 0, item, function(err, value) {
                     if(err)
                         return respondWithError(response, 'Could not add item to DONE');    
-                    respondWithNoContent(response); 
+                    respondWithNoContent(response);
+                    emitUpdateToRoom(serverSocket, listId);
                 }); 
             });
         });
@@ -107,7 +109,7 @@ function getList(response, listId) {
     });
 }
 
-function clearList(response, listId) {
+function clearList(response, serverSocket, listId) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
@@ -115,45 +117,69 @@ function clearList(response, listId) {
             if(err)
                 return respondWithError(response, 'Could not clear list');    
             respondWithNoContent(response);
+            emitUpdateToRoom(serverSocket, listId);
         });
     });
 }
 
+function emitUpdateToRoom(serverSocket, listId) {
+    serverSocket.to(listId).emit('update');
+    console.log('List ' + listId + ' changed');
+}
+
 function notFound(response) {
-    response.writeHeader(404, {'Content-Length': '0'});
-    response.end();
+    var headers = {};
+    headers['Content-Length'] = '0';
+    respond(response, 404, headers);
 }
 
 function methodNotAllowed(response, allow) {
-    response.writeHeader(405, {'Allow': allow, 'Content-Length': '0'});
-    response.end();
+    var headers = {};
+    headers['Content-Length'] = '0';
+    headers['Allow'] = allow;
+    respond(response, 405, headers);
 }    
     
-function respond(response, statusCode, contentType, message) {
-    response.writeHead(statusCode, {"Content-Type": contentType});
-    response.end(message);
+function respond(response, statusCode, headers, message) {
+    response.writeHead(statusCode, headers);
+    if(message !== undefined)
+        response.write(message);
+    response.end();
 }
 
 function respondWithOK(response, message) {
-    respond(response, 200, 'text/plain', message);   
+    var headers = {};
+    headers['Content-Type'] = 'text/plain';
+    headers['Content-Length'] = message.length;
+    respond(response, 200, headers, message);   
 }
 
 function respondWithNoContent(response) {
-    response.writeHead(204, {'Content-Length': '0'});
-    response.end();
+    var headers = {};
+    headers['Content-Length'] = '0';
+    respond(response, 204, headers);
 }
 
 function respondWithCreated(response, absoluteURI, message) {
-    response.writeHead(201, {'Location': absoluteURI, 'Content-Type': 'text/plain'});
-    response.end(message);
+    var headers = {};
+    headers['Content-Type'] = 'text/plain';
+    headers['Content-Length'] = message.length;
+    headers['Location'] = absoluteURI;
+    respond(response, 201, headers, message);
 }
 
 function respondWithJson(response, message) {
-    respond(response, 200, 'application/json', message);
+    var headers = {};
+    headers['Content-Type'] = 'application/json';
+    headers['Content-Length'] = message.length;
+    respond(response, 200, headers, message);
 }
 
 function respondWithError(response, message) {
-    respond(response, 500, 'text/plain', message);
+    var headers = {};
+    headers['Content-Type'] = 'text/plain';
+    headers['Content-Length'] = message.length;
+    respond(response, 500, headers, message);
 }
 
 exports.android = android;

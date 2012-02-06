@@ -21,7 +21,7 @@ function start(route, handle) {
             else if(pathname == '/index-android.html') //TODO Handle differently?
                 handle.android(response);
             else
-                route(handle, paths, request.method, response, postData);
+                route(handle, paths, request.method, response, io.sockets, postData);
         });
     }
     
@@ -48,11 +48,6 @@ function start(route, handle) {
         socket.on('disconnect', function() {
             socket.leave(socket.listId);
             console.log('Client disconnected');
-        });
-        
-        socket.on('listChanged', function(listId) {
-            socket.broadcast.to(listId).emit('update');
-            console.log('List ' + listId + ' changed');
         });
         
         socket.on('message', function(message) {
