@@ -49,19 +49,14 @@
         
         function addItem() {
             var url = listUri + '/' + localStorage.listId;
-            $.post(url, {item:$('#addInput').val()}, function(data) {
-                console.log('Added item to list');
-            });
+            $.post(url, {item:$('#addInput').val()});
         }
         
         function removeItem() {
             var url = listUri + '/' + localStorage.listId + '/' + $('#removeInput').val();
             $.ajax({
                 type: 'DELETE',
-                url: url,
-                success: function(msg) {
-                    console.log('Removed item from list');
-                }
+                url: url
             });
         }
         
@@ -69,10 +64,7 @@
             var url = listUri + '/' + localStorage.listId;
             $.ajax({
                 type: 'DELETE',
-                url: url,
-                success: function(msg) {
-                    console.log('Cleared list');
-                }
+                url: url
             });
         }
         
