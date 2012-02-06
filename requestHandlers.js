@@ -50,9 +50,10 @@ function newList(response) {
 function add(response, serverSocket, listId, data) {
     console.log('Add data: ' + data);
     var item = querystring.parse(data).item;
-    if(item === undefined)
+    if(item === undefined) {
         item = JSON.parse(data).item;
-        
+        console.log('Item was JSON');
+    }
     console.log('Item: ' + item);
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
@@ -104,6 +105,7 @@ function getList(response, listId) {
             for(var i = 0; i < members.length; i++)
                 items[i] = members[i];
             var itemsJsonString = JSON.stringify({'items': items});
+            console.log('Items json string: ' + itemsJsonString);
             respondWithJson(response, itemsJsonString);
         });  
     });
@@ -170,8 +172,10 @@ function respondWithCreated(response, absoluteURI, message) {
 
 function respondWithJson(response, message) {
     var headers = {};
-    headers['Content-Type'] = 'application/json';
-    headers['Content-Length'] = message.length;
+    headers['Content-Type'] = 'application/json, charset=utf-8';
+    // TODO When Content-Length is set, the whole message is not sent.
+    // NO IDEA WHY?!?!?!?!?!
+    //headers['Content-Length'] = message.length;
     respond(response, 200, headers, message);
 }
 
