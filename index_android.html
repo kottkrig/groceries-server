@@ -15,7 +15,11 @@
         
         function connectToList(listId) {
             socket.emit('connectToList', listId);
-        }    
+        }
+        
+        function disconnectFromList() {
+            socket.emit('disconnect');
+        }
     </script>
 	</head>
 	<body></body>
