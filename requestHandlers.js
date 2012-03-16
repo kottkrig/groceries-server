@@ -26,6 +26,14 @@ function android(response) {
     });
 }
 
+function iphone(response) {
+    fs.readFile(__dirname + '/index_iphone.html', function (err, data) {
+        if(err)
+            respondWithError(response, 'Error loading index_iphone.html');
+        respond(response, 200, 'text/html', data); 
+    });
+}
+
 function start(response) {
     fs.readFile(__dirname + '/index.html', function (err, data) {
         if(err)
@@ -187,6 +195,7 @@ function respondWithError(response, message) {
 }
 
 exports.android = android;
+exports.iphone = iphone;
 exports.start = start;
 exports.add = add;
 exports.remove = remove;

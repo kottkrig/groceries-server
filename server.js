@@ -18,8 +18,10 @@ function start(route, handle) {
         request.addListener('end', function() {
             if(pathname == '/') //TODO Remove when no use of test client anymore
                 handle['/'](response);
-            else if(pathname == '/index-android.html') //TODO Handle differently?
+            else if(pathname == '/index_android.html') //TODO Handle differently?
                 handle.android(response);
+            else if(pathname == '/index_iphone.html') //TODO Handle differently?
+                handle.iphone(response);
             else
                 route(handle, paths, request.method, response, io.sockets, postData);
         });
