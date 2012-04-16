@@ -1,38 +1,34 @@
-var http = require("http");
-var socketIo = require('socket.io'); 
-var url = require("url");
+var express = require('express');
 
-function start(route, handle) {
-    function onRequest(request, response) {
-        var postData = '';
-        var pathname = url.parse(request.url).pathname;
-        var paths = pathname.split('/');
-        paths.shift(); //Remove first elem (empty because pathname starts with '/')
-        
-        console.log("Request for " + pathname + " received.");
-        
-        request.setEncoding('utf8');
-        request.addListener('data', function(data) {
-            postData += data;
-        });
-        request.addListener('end', function() {
-            if(pathname == '/') //TODO Remove when no use of test client anymore
-                handle['/'](response);
-            else if(pathname == '/index_android.html') //TODO Handle differently?
-                handle.android(response);
-            else if(pathname == '/index_iphone.html') //TODO Handle differently?
-                handle.iphone(response);
-            else
-                route(handle, paths, request.method, response, io.sockets, postData);
-        });
-    }
+function start(handle) {    
+    var app = express.createServer();
+    app.use(express.bodyParser());
+    app.use(express.static(__dirname + '/public'));
     
-    var app = http.createServer(onRequest);
-    var port = process.env.PORT;
-    app.listen(port);
-    console.log("Server has started.");
+    app.get('/list/:listId', function(request, response) {
+        console.log('Get list');
+        handle.getList(response, request.params.listId);
+    });
 
-    var io = socketIo.listen(app);
+    app.post('/list', function(request, response) {
+        handle.newList(response);
+    });
+    
+    app.post('/list/:listId', function(request, response) {
+        handle.add(response, request.params.listId, request.body.item);
+    });
+    
+    app.del('/list/:listId', function(request, response) {
+        handle.clearList(response, request.params.listId);
+    });
+    
+    app.del('/list/:listId/:item', function(request, response) {
+        handle.remove(response, request.params.listId, request.params.item);
+    });
+
+    app.listen(process.env.PORT || 3000);
+    console.log("Server has started.");
+    
 /*
     // Socket config for Heroku
     io.configure(function() {
@@ -40,22 +36,6 @@ function start(route, handle) {
         io.set('polling duration', 10);
     });
 */
-    io.sockets.on('connection', function(socket) {
-        socket.on('connectToList', function(listId) {
-            socket.join(listId);
-            socket.listId = listId;
-            console.log('Client connected to list ' + listId);
-        });
-        
-        socket.on('disconnect', function() {
-            socket.leave(socket.listId);
-            console.log('Client disconnected');
-        });
-        
-        socket.on('message', function(message) {
-            console.log('Server got message: ' + message);    
-        });
-    });
 } 
 
 exports.start = start;

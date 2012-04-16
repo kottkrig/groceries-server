@@ -1,5 +1,4 @@
 var fs = require('fs');
-var querystring = require('querystring');
 var redis = require('redis');
 var db = redis.createClient(9443, 'stingfish.redistogo.com');
 var dbAuth = function() {
@@ -55,13 +54,7 @@ function newList(response) {
     });
 }    
 
-function add(response, serverSocket, listId, data) {
-    console.log('Add data: ' + data);
-    var item = querystring.parse(data).item;
-    if(item === undefined) {
-        item = JSON.parse(data).item;
-        console.log('Item was JSON');
-    }
+function add(response, listId, item) {
     console.log('Item: ' + item);
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
@@ -73,13 +66,12 @@ function add(response, serverSocket, listId, data) {
                 if(err)
                     return respondWithError(response, 'Could not add item');
                 respondWithNoContent(response);
-                emitUpdateToRoom(serverSocket, listId);
             });
         });
     });
 }
 
-function remove(response, serverSocket, listId, item) {
+function remove(response, listId, item) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
@@ -95,7 +87,6 @@ function remove(response, serverSocket, listId, item) {
                     if(err)
                         return respondWithError(response, 'Could not add item to DONE');    
                     respondWithNoContent(response);
-                    emitUpdateToRoom(serverSocket, listId);
                 }); 
             });
         });
@@ -119,7 +110,7 @@ function getList(response, listId) {
     });
 }
 
-function clearList(response, serverSocket, listId) {
+function clearList(response, listId) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
             return respondWithError(response, 'Could not find list');
@@ -127,7 +118,6 @@ function clearList(response, serverSocket, listId) {
             if(err)
                 return respondWithError(response, 'Could not clear list');    
             respondWithNoContent(response);
-            emitUpdateToRoom(serverSocket, listId);
         });
     });
 }
