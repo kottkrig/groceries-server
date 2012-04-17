@@ -21,13 +21,20 @@
         function initSocket() {
             socket = io.connect();
             console.log('Client is running.');
-            socket.on('update', function () {
-                console.log('Update event Received!');
-                getList();
-            });
+            socket.emit('connectToList', localStorage.listId);
             
             socket.on('message', function(message) {
                 console.log('Got message: ' + message);    
+            });
+            
+            socket.on('add', function(data) {
+                // Add item to list
+                console.log('Add ' + data.item + ' to list');
+            });
+            
+            socket.on('remove', function(data) {
+                // Remove item from list
+                console.log('Remove ' + data.item + ' from list');
             });
         }
         function getListId() {
@@ -39,9 +46,9 @@
         
         function getList() {
             var url = listUri + '/' + localStorage.listId;
-            $.getJSON(url, function(data) {
+            $.getJSON(url, function(items) {
                 $('#list').html("<ul></ul>");
-                $.each(data.items, function(key, val) {
+                $.each(items, function(key, val) {
                     $('#list ul').append('<li id="' + key + '">' + val + '</li>');
                 });
             });

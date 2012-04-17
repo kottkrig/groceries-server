@@ -19,49 +19,50 @@ var LAST_ITEM = -1;
 function newList(response) {
     db.incr(LAST_LIST_ID, function(err, newListId) {
         if(err)
-            return respondWithError(response, 'Could not create new list');
+            return response.send('Could not create new list', 500);
         db.hset(newListId, ACTIVE_ID, newListId + '_active');
         db.hset(newListId, DONE_ID, newListId + '_done');     
         LAST_LIST_ID = newListId;
-        var serverListURI = 'http://groceries-server.akire.c9.io/list/';
-        var absoluteURI = serverListURI + newListId;
-        respondWithCreated(response, absoluteURI, newListId + '');
+        response.header('Location', 'http://groceries-server.akire.c9.io/list/' + newListId);
+        response.send(201);
     });
 }    
 
-function add(response, listId, item) {
+function add(response, listId, item, serverSocket) {
     console.log('Item: ' + item);
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return respondWithError(response, 'Could not find list');
+            return response.send('Could not find list', 500);
         db.zcard(activeListId, function(err, cardinality) {
             if(err)
-                return respondWithError(response, '500 Internal server error');
-            db.zadd(activeListId, cardinality, item, function(err, value) {
+                return response.send('Internal server error', 500);
+            db.zadd(activeListId, cardinality, item, function(err) {
                 if(err)
-                    return respondWithError(response, 'Could not add item');
-                respondWithNoContent(response);
+                    return response.send('Could not add item', 500);
+                response.send();
+                serverSocket.to(listId).emit('add', { "item": item });
             });
         });
     });
 }
 
-function remove(response, listId, item) {
+function remove(response, listId, item, serverSocket) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return respondWithError(response, 'Could not find list');
+            return response.send('Could not find list', 500);
         db.hget(listId, DONE_ID, function(err, doneListId) {
             if(err)
-                return respondWithError(response, 'Could not find list');
+                return response.send('Could not find list', 500);
             db.zrem(activeListId, item, function(err, value) {
                 if(err)
-                    return respondWithError(response, 'Could not remove item');
+                    return response.send('Could not remove item', 500);
                 if(value != 1)
-                    return respondWithNoContent(response); 
-                db.zadd(doneListId, 0, item, function(err, value) {
+                    return response.send(); 
+                db.zadd(doneListId, 0, item, function(err) {
                     if(err)
-                        return respondWithError(response, 'Could not add item to DONE');    
-                    respondWithNoContent(response);
+                        return response.send('Could not add item to DONE', 500);    
+                    response.send();
+                    serverSocket.to(listId).emit('remove', { "item": item });
                 }); 
             });
         });
@@ -71,16 +72,11 @@ function remove(response, listId, item) {
 function getList(response, listId) {    
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return respondWithError(response, 'Could not find list');   
-        db.zrange(activeListId, FIRST_ITEM, LAST_ITEM, function(err, members) {
+            return response.send('Could not find list', 500);   
+        db.zrange(activeListId, FIRST_ITEM, LAST_ITEM, function(err, items) {
             if(err)
-                return respondWithError(response, 'Error when fetching list from database');   
-            var items = [];
-            for(var i = 0; i < members.length; i++)
-                items[i] = members[i];
-            var itemsJsonString = JSON.stringify({'items': items});
-            console.log('Items json string: ' + itemsJsonString);
-            respondWithJson(response, itemsJsonString);
+                return response.send('Error when fetching list from database', 500);   
+            response.json(items);
         });  
     });
 }
@@ -88,62 +84,13 @@ function getList(response, listId) {
 function clearList(response, listId) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return respondWithError(response, 'Could not find list');
-        db.zinterstore(activeListId, 2, activeListId, EMPTY_SET, function(err, value) {
+            return response.send('Could not find list', 500);
+        db.zinterstore(activeListId, 2, activeListId, EMPTY_SET, function(err) {
             if(err)
-                return respondWithError(response, 'Could not clear list');    
-            respondWithNoContent(response);
+                return response.send('Could not clear list', 500);    
+            response.send();
         });
     });
-}
-
-function emitUpdateToRoom(serverSocket, listId) {
-    serverSocket.to(listId).emit('update');
-    console.log('List ' + listId + ' changed');
-}   
-    
-function respond(response, statusCode, headers, message) {
-    response.writeHead(statusCode, headers);
-    if(message !== undefined)
-        response.write(message);
-    response.end();
-}
-
-function respondWithOK(response, message) {
-    var headers = {};
-    headers['Content-Type'] = 'text/plain';
-    headers['Content-Length'] = message.length;
-    respond(response, 200, headers, message);   
-}
-
-function respondWithNoContent(response) {
-    var headers = {};
-    headers['Content-Length'] = '0';
-    respond(response, 204, headers);
-}
-
-function respondWithCreated(response, absoluteURI, message) {
-    var headers = {};
-    headers['Content-Type'] = 'text/plain';
-    headers['Content-Length'] = message.length;
-    headers['Location'] = absoluteURI;
-    respond(response, 201, headers, message);
-}
-
-function respondWithJson(response, message) {
-    var headers = {};
-    headers['Content-Type'] = 'application/json, charset=utf-8';
-    // TODO When Content-Length is set, the whole message is not sent.
-    // NO IDEA WHY?!?!?!?!?!
-    //headers['Content-Length'] = message.length;
-    respond(response, 200, headers, message);
-}
-
-function respondWithError(response, message) {
-    var headers = {};
-    headers['Content-Type'] = 'text/plain';
-    headers['Content-Length'] = message.length;
-    respond(response, 500, headers, message);
 }
 
 exports.add = add;

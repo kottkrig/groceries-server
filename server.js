@@ -1,12 +1,16 @@
 var express = require('express');
+var http = require('http');
+var socketIo = require('socket.io');
 
 function start(handle) {    
-    var app = express.createServer();
+    var app = express();
+    var server = http.createServer(app);
+    var io = socketIo.listen(server);
+
     app.use(express.bodyParser());
     app.use(express.static(__dirname + '/public'));
     
     app.get('/list/:listId', function(request, response) {
-        console.log('Get list');
         handle.getList(response, request.params.listId);
     });
 
@@ -15,7 +19,7 @@ function start(handle) {
     });
     
     app.post('/list/:listId', function(request, response) {
-        handle.add(response, request.params.listId, request.body.item);
+        handle.add(response, request.params.listId, request.body.item, io.sockets);
     });
     
     app.del('/list/:listId', function(request, response) {
@@ -23,11 +27,12 @@ function start(handle) {
     });
     
     app.del('/list/:listId/:item', function(request, response) {
-        handle.remove(response, request.params.listId, request.params.item);
+        handle.remove(response, request.params.listId, request.params.item, io.sockets);
     });
 
-    app.listen(process.env.PORT || 3000);
+    server.listen(process.env.PORT || 3000);
     console.log("Server has started.");
+    
     
 /*
     // Socket config for Heroku
@@ -36,6 +41,23 @@ function start(handle) {
         io.set('polling duration', 10);
     });
 */
+
+    io.sockets.on('connection', function(socket) {
+        socket.on('connectToList', function(listId) {
+            socket.join(listId);
+            socket.listId = listId;
+            console.log('Client connected to list ' + listId);
+        });
+                
+        socket.on('disconnect', function() {
+            socket.leave(socket.listId);
+            console.log('Client disconnected from list ' + socket.listId);
+        });
+        
+        socket.on('message', function(message) {
+            console.log('Server got message: ' + message);    
+        });
+    });
 } 
 
 exports.start = start;
