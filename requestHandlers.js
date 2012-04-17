@@ -1,4 +1,3 @@
-var fs = require('fs');
 var redis = require('redis');
 var db = redis.createClient(9443, 'stingfish.redistogo.com');
 var dbAuth = function() {
@@ -16,30 +15,6 @@ var LAST_LIST_ID = 0;
 
 var FIRST_ITEM = 0;
 var LAST_ITEM = -1;
-
-function android(response) {
-    fs.readFile(__dirname + '/index_android.html', function (err, data) {
-        if(err)
-            respondWithError(response, 'Error loading index_android.html');
-        respond(response, 200, 'text/html', data); 
-    });
-}
-
-function iphone(response) {
-    fs.readFile(__dirname + '/index_iphone.html', function (err, data) {
-        if(err)
-            respondWithError(response, 'Error loading index_iphone.html');
-        respond(response, 200, 'text/html', data); 
-    });
-}
-
-function start(response) {
-    fs.readFile(__dirname + '/index.html', function (err, data) {
-        if(err)
-            respondWithError(response, 'Error loading index.html');
-        respond(response, 200, 'text/html', data); 
-    });
-}
 
 function newList(response) {
     db.incr(LAST_LIST_ID, function(err, newListId) {
@@ -125,20 +100,7 @@ function clearList(response, listId) {
 function emitUpdateToRoom(serverSocket, listId) {
     serverSocket.to(listId).emit('update');
     console.log('List ' + listId + ' changed');
-}
-
-function notFound(response) {
-    var headers = {};
-    headers['Content-Length'] = '0';
-    respond(response, 404, headers);
-}
-
-function methodNotAllowed(response, allow) {
-    var headers = {};
-    headers['Content-Length'] = '0';
-    headers['Allow'] = allow;
-    respond(response, 405, headers);
-}    
+}   
     
 function respond(response, statusCode, headers, message) {
     response.writeHead(statusCode, headers);
@@ -184,13 +146,8 @@ function respondWithError(response, message) {
     respond(response, 500, headers, message);
 }
 
-exports.android = android;
-exports.iphone = iphone;
-exports.start = start;
 exports.add = add;
 exports.remove = remove;
 exports.getList = getList;
 exports.clearList = clearList;
 exports.newList = newList;
-exports.methodNotAllowed = methodNotAllowed;
-exports.notFound = notFound;
