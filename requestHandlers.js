@@ -1,7 +1,15 @@
 var redis = require('redis');
-var db = redis.createClient(9443, 'stingfish.redistogo.com');
+
+// Regular DB
+//var db = redis.createClient(9443, 'stingfish.redistogo.com');
+//var dbAuth = function() {
+//  db.auth('eeabd0f6182a690e0c0c1df7556c85ae');
+//};
+
+// Test DB
+var db = redis.createClient(9396, 'drum.redistogo.com');
 var dbAuth = function() {
-  db.auth('eeabd0f6182a690e0c0c1df7556c85ae');
+  db.auth('68685117da7182d2a02298b38e3c06aa');
 };
 
 db.addListener('connected', dbAuth);
@@ -10,9 +18,6 @@ dbAuth();
 
 var EMPTY_SET = 'empty';
 var LAST_LIST_ID = 0;
-
-var FIRST_ITEM = 0;
-var LAST_ITEM = -1;
 
 function newList(callback) {
     db.incr(LAST_LIST_ID, function(err, newListId) {
@@ -24,33 +29,23 @@ function newList(callback) {
 }    
 
 function add(listId, item, callback) {
-    db.zcard(activeList(listId), function(err, cardinality) {
+    db.sadd(activeList(listId), item, function(err) {
         if(err)
-            return callback('Internal server error');
-        db.zadd(activeList(listId), cardinality, item, function(err) {
-            if(err)
-                return callback('Could not add item');
-            return callback(null, listId, item);
-        });
+            return callback('Could not add item');
+        return callback(null, listId, item);
     });
 }
 
 function remove(listId, item, callback) {
-    db.zrem(activeList(listId), item, function(err, value) {
+    db.smove(activeList(listId), doneList(listId), item, function(err) {
         if(err)
-            return callback('Could not remove item');
-        if(value != 1)
-            return callback(null, listId, item); 
-        db.zadd(doneList(listId), 0, item, function(err) {
-            if(err)
-                return callback('Could not add item to DONE');    
-            return callback(null, listId, item);
-        }); 
-    });
+            return callback('Could not add item to DONE');    
+        return callback(null, listId, item);
+    }); 
 }
 
 function getList(listId, callback) {    
-    db.zrange(activeList(listId), FIRST_ITEM, LAST_ITEM, function(err, items) {
+    db.smembers(activeList(listId), function(err, items) {
         if(err)
             return callback('Error when fetching list from database');   
         return callback(null, items);
@@ -58,7 +53,7 @@ function getList(listId, callback) {
 }
 
 function clearList(listId, callback) {
-    db.zinterstore(activeList(listId), 2, activeList(listId), EMPTY_SET, function(err) {
+    db.sinter(activeList(listId), EMPTY_SET, function(err) {
         if(err)
             return callback('Could not clear list');    
         return callback(null);
