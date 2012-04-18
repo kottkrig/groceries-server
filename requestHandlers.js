@@ -16,79 +16,76 @@ var LAST_LIST_ID = 0;
 var FIRST_ITEM = 0;
 var LAST_ITEM = -1;
 
-function newList(response) {
+function newList(callback) {
     db.incr(LAST_LIST_ID, function(err, newListId) {
         if(err)
-            return response.send('Could not create new list', 500);
+            return callback('Could not create new list');
         db.hset(newListId, ACTIVE_ID, newListId + '_active');
         db.hset(newListId, DONE_ID, newListId + '_done');     
         LAST_LIST_ID = newListId;
-        response.header('Location', 'http://groceries-server.akire.c9.io/list/' + newListId);
-        response.send(201);
+        return callback(null, newListId);
     });
 }    
 
-function add(response, listId, item, serverSocket) {
+function add(listId, item, callback) {
     console.log('Item: ' + item);
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return response.send('Could not find list', 500);
+            return callback('Could not find list');
         db.zcard(activeListId, function(err, cardinality) {
             if(err)
-                return response.send('Internal server error', 500);
+                return callback('Internal server error');
             db.zadd(activeListId, cardinality, item, function(err) {
                 if(err)
-                    return response.send('Could not add item', 500);
-                response.send();
-                serverSocket.to(listId).emit('add', { "item": item });
+                    return callback('Could not add item');
+                return callback(null, listId, item);
             });
         });
     });
 }
 
-function remove(response, listId, item, serverSocket) {
+function remove(listId, item, callback) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return response.send('Could not find list', 500);
+            return callback('Could not find list');
         db.hget(listId, DONE_ID, function(err, doneListId) {
             if(err)
-                return response.send('Could not find list', 500);
+                return callback('Could not find list');
             db.zrem(activeListId, item, function(err, value) {
                 if(err)
-                    return response.send('Could not remove item', 500);
+                    return callback('Could not remove item');
                 if(value != 1)
-                    return response.send(); 
+                    return callback(null, listId, item); 
                 db.zadd(doneListId, 0, item, function(err) {
                     if(err)
-                        return response.send('Could not add item to DONE', 500);    
-                    response.send();
-                    serverSocket.to(listId).emit('remove', { "item": item });
+                        return callback('Could not add item to DONE');    
+                    return callback(null, listId, item);
                 }); 
             });
         });
     });
 }
 
-function getList(response, listId) {    
+function getList(listId, callback) {    
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return response.send('Could not find list', 500);   
+            return callback('Could not find list');   
         db.zrange(activeListId, FIRST_ITEM, LAST_ITEM, function(err, items) {
             if(err)
-                return response.send('Error when fetching list from database', 500);   
-            response.json(items);
+                return callback('Error when fetching list from database');   
+            return callback(null, items);
         });  
     });
 }
 
-function clearList(response, listId) {
+function clearList(listId, callback) {
     db.hget(listId, ACTIVE_ID, function(err, activeListId) {
         if(err)
-            return response.send('Could not find list', 500);
+            return callback('Could not find list');
         db.zinterstore(activeListId, 2, activeListId, EMPTY_SET, function(err) {
             if(err)
-                return response.send('Could not clear list', 500);    
-            response.send();
+                return callback('Could not clear list');    
+            return callback(null);
         });
     });
 }

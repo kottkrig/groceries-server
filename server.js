@@ -11,28 +11,50 @@ function start(handle) {
     app.use(express.static(__dirname + '/public'));
     
     app.get('/list/:listId', function(request, response) {
-        handle.getList(response, request.params.listId);
+        handle.getList(request.params.listId, function(err, items) {
+            if(err)
+                return response.send(err, 500);
+            return response.json(items);
+        });
     });
 
     app.post('/list', function(request, response) {
-        handle.newList(response);
+        handle.newList(function(err, newListId) {
+            if(err)
+                response.send(err, 500);
+            response.header('Location', 'http://groceries-server.akire.c9.io/list/' + newListId);
+            return response.send(201);    
+        });
     });
     
     app.post('/list/:listId', function(request, response) {
-        handle.add(response, request.params.listId, request.body.item, io.sockets);
+        handle.add(request.params.listId, request.body.item, function(err, listId, item) {
+            if(err)
+                return response.send(err, 500);
+            response.send();
+            return io.sockets.to(listId).emit('add', { "item": item });
+        });
     });
     
     app.del('/list/:listId', function(request, response) {
-        handle.clearList(response, request.params.listId);
+        handle.clearList(request.params.listId, function(err) {
+            if(err)
+                return response.send(err, 500);
+            return response.send();
+        });
     });
     
     app.del('/list/:listId/:item', function(request, response) {
-        handle.remove(response, request.params.listId, request.params.item, io.sockets);
+        handle.remove(request.params.listId, request.params.item, function(err, listId, item) {
+            if(err)
+                return response.send(err, 500);
+            response.send();
+            return io.sockets.to(listId).emit('remove', { "item": item });
+        });
     });
 
     server.listen(process.env.PORT || 3000);
     console.log("Server has started.");
-    
     
 /*
     // Socket config for Heroku
