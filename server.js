@@ -21,7 +21,7 @@ function start(handle) {
     app.post('/list', function(request, response) {
         handle.newList(function(err, newListId) {
             if(err)
-                response.send(err, 500);
+                return response.send(err, 500);
             response.header('Location', 'http://groceries-server.akire.c9.io/list/' + newListId);
             return response.send(201);    
         });
