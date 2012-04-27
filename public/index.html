@@ -4,103 +4,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
     <script src="http://code.jquery.com/jquery-latest.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        var socket;
-        var listUri = '/list';
-        
-        $(document).ready(function() {
-            //var listId = 'a9f87612def3';
-            var listId = '8';
-            if (localStorage.listId == undefined)
-                getListId();
-            else
-                getList();
-            initSocket();
-        });
-        
-        function initSocket() {
-            socket = io.connect();
-            console.log('Client is running.');
-            socket.emit('connectToList', localStorage.listId);
-            
-            socket.on('message', function(message) {
-                console.log('Got message: ' + message);    
-            });
-            
-            socket.on('add', function(data) {
-                // Add item to list
-                console.log('Add ' + data.item + ' to list');
-            });
-            
-            socket.on('remove', function(data) {
-                // Remove item from list
-                console.log('Remove ' + data.item + ' from list');
-            });
-        }
-        function getListId() {
-            $.post(listUri, function(data) {
-                console.log("New list created: "+data);
-                localStorage.listId = data;
-            });
-        }
-        
-        function getList() {
-            var url = listUri + '/' + localStorage.listId;
-            $.getJSON(url, function(items) {
-                $('#list').html("<ul></ul>");
-                $.each(items, function(key, val) {
-                    $('#list ul').append('<li id="' + key + '">' + val + '</li>');
-                });
-            });
-        }
-        
-        function addItem() {
-            var url = listUri + '/' + localStorage.listId;
-            $.post(url, {item:$('#addInput').val()});
-        }
-        
-        function removeItem() {
-            var url = listUri + '/' + localStorage.listId + '/' + $('#removeInput').val();
-            $.ajax({
-                type: 'DELETE',
-                url: url
-            });
-        }
-        
-        function clearList() {
-            var url = listUri + '/' + localStorage.listId;
-            $.ajax({
-                type: 'DELETE',
-                url: url
-            });
-        }
-        
-        function setListId() {
-            localStorage.listId = $('#setListInput').val();
-            socket.emit('connectToList', localStorage.listId);
-            console.log('Connected to list ' + localStorage.listId);
-            getList();
-        }    
-    </script>
+    <script src="server-handler.js"></script>
+    <script src="socket-handler.js"></script>
+    <script src="web-handler.js"></script>
 	</head>
 	<body>
         <form>
             <input id="addInput" type='text' name='item' />
-            <button type="button" onClick="addItem(); return false;">Add!</button>
-        </form>
-        <form>
-            <input id="removeInput" type='text' name='item' />
-            <button type="button" onClick="removeItem(); return false;">Remove!</button>
-        </form>
-        <form>
-            <input id="setListInput" type='text'/>
-            <button type="button" onClick="setListId(); return false;">SetListId</button>
-        </form>
-        <form>
-            <button type="button" onClick="clearList(); return false;">ClearList</button>
+            <button id="addButton" type="button" onClick="addButtonClicked(); return false;">Add</button>
         </form>
         <div>
-            <p id="list"></p>
+            <div id="list"></div>
         </div>
 	</body>
 </html>
