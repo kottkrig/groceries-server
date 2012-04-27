@@ -1,0 +1,28 @@
+#addInput {
+    width:310px;    
+}
+
+#addButton {
+    width:80px;  
+}
+
+#list {
+    width:400px;
+}
+
+ul {
+    margin:0;
+    padding:0;
+    list-style-type:none;
+}
+
+ul li {
+    position:relative;
+}
+
+ul li button {
+    position:absolute;
+    top:-2px;
+    right:0;
+    width:80px;
+}
